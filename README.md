@@ -14,7 +14,7 @@
 | alicebsy | 1 | ❌ |
 | onff02 | 4 | ❌ |
 | orca-svg | 2 | ❌ |
-| sungjaep11 | 1 | ❌ |
+| sungjaep11 | 2 | ❌ |
 <!-- WEEKLY_DASHBOARD_END -->
 
 
