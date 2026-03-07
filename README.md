@@ -12,7 +12,7 @@
 | LYoooJ | 2 | ❌ |
 | Nul0luN | 13 | ✅ |
 | alicebsy | 3 | ❌ |
-| onff02 | 5 | ✅ |
+| onff02 | 6 | ✅ |
 | orca-svg | 4 | ❌ |
 | sungjaep11 | 3 | ❌ |
 | tomchaccom | 8 | ✅ |
