@@ -10,7 +10,7 @@
 |--------|-------|--------|
 | KangYeSeo04 | 1 | ❌ |
 | LYoooJ | 8 | ✅ |
-| Nul0luN | 16 | ✅ |
+| Nul0luN | 17 | ✅ |
 | alicebsy | 5 | ✅ |
 | onff02 | 6 | ✅ |
 | orca-svg | 8 | ✅ |
