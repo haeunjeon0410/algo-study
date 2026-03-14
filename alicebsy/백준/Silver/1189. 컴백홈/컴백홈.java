@@ -5,6 +5,7 @@ public class Main {
     static char[][] map;
     static boolean[][] visited;
     
+    // 상하좌우 탐색을 위한 방향 배열
     static int[] dx = {-1, 1, 0, 0};
     static int[] dy = {0, 0, -1, 1};
     
@@ -25,8 +26,6 @@ public class Main {
                 String line = sc.next();
                 map[i] = line.toCharArray();
             }
-
-            
             visited[R - 1][0] = true;
             dfs(R - 1, 0, 1);
             
@@ -37,7 +36,6 @@ public class Main {
     }
 
     static void dfs(int r, int c, int dist) {
-
         if (r == 0 && c == C - 1) {
             if (dist == K) {
                 answer++;
@@ -49,7 +47,7 @@ public class Main {
             return;
         }
 
-        // 상하좌우  탐색
+        // 상하좌우 탐색
         for (int i = 0; i < 4; i++) {
             int nr = r + dx[i];
             int nc = c + dy[i];
