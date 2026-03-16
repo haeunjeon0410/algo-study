@@ -10,8 +10,8 @@
 |--------|-------|--------|
 | LYoooJ | 1 | ❌ |
 | Nul0luN | 2 | ❌ |
-| haeunjeon0410 | 2 | ❌ |
-| onff02 | 5 | ✅ |
+| haeunjeon0410 | 3 | ❌ |
+| onff02 | 6 | ✅ |
 | sungjaep11 | 4 | ❌ |
 <!-- WEEKLY_DASHBOARD_END -->
 
