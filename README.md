@@ -9,11 +9,13 @@
 | Member | Count | Status |
 |--------|-------|--------|
 | LYoooJ | 1 | ❌ |
-| Nul0luN | 9 | ✅ |
+| Nul0luN | 10 | ✅ |
 | alicebsy | 5 | ✅ |
 | haeunjeon0410 | 19 | ✅ |
 | onff02 | 13 | ✅ |
+| orca-svg | 3 | ❌ |
 | sungjaep11 | 7 | ✅ |
+| tomchaccom | 1 | ❌ |
 <!-- WEEKLY_DASHBOARD_END -->
 
 
