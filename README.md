@@ -11,7 +11,7 @@
 | LYoooJ | 3 | ❌ |
 | Nul0luN | 22 | ✅ |
 | alicebsy | 5 | ✅ |
-| haeunjeon0410 | 26 | ✅ |
+| haeunjeon0410 | 27 | ✅ |
 | onff02 | 16 | ✅ |
 | orca-svg | 5 | ✅ |
 | sungjaep11 | 7 | ✅ |
