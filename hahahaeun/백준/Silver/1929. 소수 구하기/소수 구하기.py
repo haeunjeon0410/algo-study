@@ -3,18 +3,13 @@ input = sys.stdin.readline
 
 m, n = map(int, input().split())
 
-num = []
+num = [True] * (n+1)
+num[0] = num[1] = False
 
-for i in range(m, n+1):
-    prime = 1
-    for j in range(2, int(i**0.5)+1):
-        if i % j == 0:
-            prime = 0
-            break
+for i in range(2, int(n**0.5)+1):
+    if num[i]:
+        for j in range(i*i, n+1, i):
+            num[j] = False
 
-    if prime:
-        if i != 1:            
-            num.append(i)
-
-for x in num:
-    print(x)
+result =[str(i) for i in range(m, n+1) if num[i]]
+print("\n".join(result))
