@@ -9,7 +9,7 @@
 | Member | Count | Status |
 |--------|-------|--------|
 | LYoooJ | 3 | ❌ |
-| Nul0luN | 22 | ✅ |
+| Nul0luN | 23 | ✅ |
 | alicebsy | 5 | ✅ |
 | haeunjeon0410 | 27 | ✅ |
 | onff02 | 16 | ✅ |
