@@ -1,29 +1,34 @@
 import sys
 
-input = sys.stdin.readline
+n = int(sys.stdin.readline())
 
-def solve():
-    n = int(input())
-    stack = []
+stack = []
+
+for i in range(n):
+    inst = sys.stdin.readline().split()
     
-    for _ in range(n):
-        command = input().split()
+    if inst[0] == "push":
+        stack.append(inst[1])
+    
+    elif inst[0] == "pop":
+        if not stack:
+            print(-1)
+        else:
+            print(stack.pop())
+            
+    elif inst[0] == "size":
+        print(len(stack))
         
-        if command[0] == 'push':
-            stack.append(command[1])
-        elif command[0] == 'pop':
-            if not stack:
-                print(-1)
-            else:
-                print(stack.pop())
-        elif command[0] == 'size':
-            print(len(stack))
-        elif command[0] == 'empty':
-            print(1 if not stack else 0)
-        elif command[0] == 'top':
-            if not stack:
-                print(-1)
-            else:
-                print(stack[-1])
-
-solve()
+    elif inst[0] == "empty":
+        if not stack:
+            print(1)
+        else:
+            print(0)
+    
+    elif inst[0] == "top":
+        if not stack:
+            print(-1)
+        else:
+            print(stack[-1])
+        
+    
