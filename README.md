@@ -8,6 +8,7 @@
 
 | Member | Count | Status |
 |--------|-------|--------|
+| Nul0luN | 1 | ❌ |
 | alicebsy | 1 | ❌ |
 <!-- WEEKLY_DASHBOARD_END -->
 
