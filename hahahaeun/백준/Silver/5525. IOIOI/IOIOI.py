@@ -7,12 +7,22 @@ m = int(input())
 
 s = input().strip()
 
-pn = 'I' + 'OI' * n
+pattern_count = 0
 pn_count = 0
-size = 2*n+1
+i = 0
 
-for i in range(m):
-    if pn in s[i:size+i]:
-        pn_count += 1
+while i < m-2:
+    if s[i:i+3] == 'IOI':
+        pattern_count += 1
+
+        if pattern_count == n:
+            pn_count += 1
+            pattern_count -= 1
+
+        i += 2
+
+    else:
+        pattern_count = 0
+        i += 1
 
 print(pn_count)
