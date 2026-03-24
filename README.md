@@ -12,7 +12,7 @@
 | Nul0luN | 6 | ✅ |
 | alicebsy | 2 | ❌ |
 | haeunjeon0410 | 3 | ❌ |
-| sungjaep11 | 1 | ❌ |
+| sungjaep11 | 2 | ❌ |
 | tomchaccom | 2 | ❌ |
 <!-- WEEKLY_DASHBOARD_END -->
 
