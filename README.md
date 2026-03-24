@@ -9,11 +9,11 @@
 | Member | Count | Status |
 |--------|-------|--------|
 | LYoooJ | 5 | ✅ |
-| Nul0luN | 3 | ❌ |
+| Nul0luN | 6 | ✅ |
 | alicebsy | 1 | ❌ |
-| haeunjeon0410 | 1 | ❌ |
+| haeunjeon0410 | 2 | ❌ |
 | sungjaep11 | 1 | ❌ |
-| tomchaccom | 1 | ❌ |
+| tomchaccom | 2 | ❌ |
 <!-- WEEKLY_DASHBOARD_END -->
 
 
