@@ -41,3 +41,5 @@ if today == 0:
 
 else:
     print(today-1)
+
+                              
