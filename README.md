@@ -9,12 +9,12 @@
 | Member | Count | Status |
 |--------|-------|--------|
 | LYoooJ | 7 | ✅ |
-| Nul0luN | 10 | ✅ |
+| Nul0luN | 12 | ✅ |
 | alicebsy | 3 | ❌ |
 | godten-cmd | 4 | ❌ |
-| haeunjeon0410 | 4 | ❌ |
-| sungjaep11 | 2 | ❌ |
-| tomchaccom | 7 | ✅ |
+| haeunjeon0410 | 5 | ✅ |
+| sungjaep11 | 3 | ❌ |
+| tomchaccom | 9 | ✅ |
 <!-- WEEKLY_DASHBOARD_END -->
 
 
