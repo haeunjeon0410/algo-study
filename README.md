@@ -12,7 +12,7 @@
 | Nul0luN | 12 | ✅ |
 | alicebsy | 3 | ❌ |
 | godten-cmd | 4 | ❌ |
-| haeunjeon0410 | 5 | ✅ |
+| haeunjeon0410 | 6 | ✅ |
 | sungjaep11 | 3 | ❌ |
 | tomchaccom | 9 | ✅ |
 <!-- WEEKLY_DASHBOARD_END -->
