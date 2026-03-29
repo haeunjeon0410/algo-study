@@ -14,7 +14,7 @@
 | alicebsy | 5 | ✅ |
 | godten-cmd | 8 | ✅ |
 | haeunjeon0410 | 11 | ✅ |
-| hjxarchive | 1 | ❌ |
+| hjxarchive | 2 | ❌ |
 | onff02 | 10 | ✅ |
 | orca-svg | 5 | ✅ |
 | sungjaep11 | 5 | ✅ |
