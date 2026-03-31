@@ -9,7 +9,7 @@
 | Member | Count | Status |
 |--------|-------|--------|
 | LYoooJ | 1 | ❌ |
-| Nul0luN | 4 | ❌ |
+| Nul0luN | 5 | ✅ |
 | haeunjeon0410 | 9 | ✅ |
 | onff02 | 6 | ✅ |
 | sungjaep11 | 2 | ❌ |
