@@ -2,4 +2,4 @@
 
 | Member | Count | Status |
 |--------|-------|--------|
-| LYoooJ | 1 | ❌ |
+| LYoooJ | 2 | ❌ |
