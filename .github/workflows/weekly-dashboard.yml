@@ -4,41 +4,59 @@ on:
   push:
     branches:
       - main
+
   schedule:
-    - cron: '59 14 * * 0'   # Sunday 23:59 KST (UTC 14:59)
+    # Sunday 23:59 KST (UTC 14:59)
+    - cron: '59 14 * * 0'
+
   workflow_dispatch:
 
 permissions:
   contents: write
+
+# 동시에 여러 workflow가 실행되며 충돌나는 상황 방지
+concurrency:
+  group: weekly-dashboard
+  cancel-in-progress: true
 
 jobs:
   dashboard:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      # =========================================
+      # 0️⃣ Repository Checkout
+      # =========================================
+      - name: Checkout Repository
+        uses: actions/checkout@v4
         with:
-          # pull --rebase를 위해 전체 히스토리를 가져옵니다.
           fetch-depth: 0
+          persist-credentials: true
 
       # =========================================
       # 1️⃣ 이번 주 PR 통계 계산
       # =========================================
       - name: Generate Weekly Stats
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
+
             const org = context.repo.owner;
             const repo = context.repo.repo;
 
-            // 🔹 KST 기준 이번 주 월요일 00:00 계산
+            // =====================================
+            // KST 기준 이번 주 월요일 00:00 계산
+            // =====================================
             const now = new Date();
+
             const kstNow = new Date(
-              now.toLocaleString("en-US", { timeZone: "Asia/Seoul" })
+              now.toLocaleString("en-US", {
+                timeZone: "Asia/Seoul"
+              })
             );
 
-            const day = kstNow.getDay(); // 0=일요일
+            const day = kstNow.getDay(); // 0 = Sunday
             const diff = day === 0 ? 6 : day - 1;
 
             kstNow.setDate(kstNow.getDate() - diff);
@@ -49,47 +67,70 @@ jobs:
             console.log("KST Monday:", kstNow.toISOString());
             console.log("UTC Monday:", mondayUTC.toISOString());
 
-            // 🔹 PR 목록 조회
-            const { data: pulls } = await github.rest.pulls.list({
-              owner: org,
-              repo: repo,
-              state: "closed",
-              per_page: 100
-            });
+            // =====================================
+            // Closed PR 조회
+            // =====================================
+            const { data: pulls } =
+              await github.rest.pulls.list({
+                owner: org,
+                repo: repo,
+                state: "closed",
+                per_page: 100
+              });
 
-            // 🔹 이번 주 merge된 PR만 필터링
+            // =====================================
+            // 이번 주 merge된 PR만 필터링
+            // =====================================
             const weekly = pulls.filter(pr =>
-              pr.merged_at && new Date(pr.merged_at) >= mondayUTC
+              pr.merged_at &&
+              new Date(pr.merged_at) >= mondayUTC
             );
 
-            console.log("Merged PR count this week:", weekly.length);
+            console.log(
+              "Merged PR count this week:",
+              weekly.length
+            );
 
-            // 🔹 작성자 기준 집계
+            // =====================================
+            // 작성자 기준 집계
+            // =====================================
             const counts = {};
 
             weekly.forEach(pr => {
               const author = pr.user.login;
+
               if (!counts[author]) {
                 counts[author] = 0;
               }
+
               counts[author]++;
             });
 
-            // 🔹 Markdown 테이블 생성
+            // =====================================
+            // Markdown 테이블 생성
+            // =====================================
             let table = "";
-            table += `📅 기준: ${kstNow.toISOString().slice(0,10)} (월요일 00:00 KST)\n\n`;
+
+            table += `📅 기준: ${kstNow
+              .toISOString()
+              .slice(0, 10)} (월요일 00:00 KST)\n\n`;
+
             table += "| Member | Count | Status |\n";
             table += "|--------|-------|--------|\n";
 
-            const authors = Object.keys(counts).sort();
+            const authors =
+              Object.keys(counts).sort();
 
             if (authors.length === 0) {
               table += "| - | 0 | ❌ |\n";
             } else {
               authors.forEach(user => {
                 const count = counts[user];
-                const status = count >= 5 ? "✅" : "❌";
-                table += `| ${user} | ${count} | ${status} |\n`;
+                const status =
+                  count >= 5 ? "✅" : "❌";
+
+                table +=
+                  `| ${user} | ${count} | ${status} |\n`;
               });
             }
 
@@ -107,41 +148,41 @@ jobs:
           $0 ~ start {
             print;
             print "";
+
             while ((getline line < "dashboard.md") > 0)
               print line;
+
             skip=1;
             next;
           }
+
           $0 ~ end {
             skip=0;
             print;
             next;
           }
+
           !skip
           ' README.md > temp.md
 
           mv temp.md README.md
 
       # =========================================
-      # 3️⃣ 변경사항 커밋 및 푸시 (충돌 방지 로직 적용)
+      # 3️⃣ 변경사항 커밋 및 푸시
       # =========================================
       - name: Commit and Push changes
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          
-          # dashboard.md를 포함하여 모든 변경사항 스테이징
+
           git add README.md dashboard.md
-          
-          # 변경사항이 실제 있는 경우에만 진행
+
+          # 변경사항이 있을 때만 commit/push
           if ! git diff --staged --quiet; then
-            # [skip ci]를 추가하여 대시보드 커밋이 액션을 다시 실행하지 않도록 설정
             git commit -m "📊 weekly dashboard update [skip ci]"
-            
-            # 푸시 전 다른 멤버의 커밋이 있다면 내 커밋을 그 위로 재배치
-            git pull --rebase origin main
-            
-            git push origin main
+
+            # 현재 HEAD를 main에 push
+            git push origin HEAD:main
           else
             echo "No changes to commit"
           fi
