@@ -2,4 +2,8 @@
 
 | Member | Count | Status |
 |--------|-------|--------|
-| - | 0 | ❌ |
+| LYoooJ | 5 | ✅ |
+| Nul0luN | 6 | ✅ |
+| haeunjeon0410 | 4 | ❌ |
+| sungjaep11 | 4 | ❌ |
+| tomchaccom | 1 | ❌ |
