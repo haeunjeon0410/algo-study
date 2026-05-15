@@ -1,11 +1,12 @@
 name: Weekly Dashboard
 
 on:
-  # 수동 실행
+  push:
+    branches:
+      - main
+
   workflow_dispatch:
 
-  # 매주 월요일 00:00 KST
-  # UTC 기준 일요일 15:00
   schedule:
     - cron: '0 15 * * 0'
 
