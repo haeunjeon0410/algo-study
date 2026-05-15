@@ -30,7 +30,7 @@
 
 반드시 본인 계정으로 fork 해야 합니다.
 
-<img width="720" height="540" alt="image" src="https://github.com/user-attachments/assets/f32802dd-189c-47df-82ac-16353143d7e1" />
+<img width="900" height="700" alt="image" src="https://github.com/user-attachments/assets/f32802dd-189c-47df-82ac-16353143d7e1" />
 <img width="720" height="540" alt="image" src="https://github.com/user-attachments/assets/ee283224-7ca0-4556-b44b-b479027df96b" />
 
 ---
