@@ -1,27 +1,34 @@
 name: Weekly Dashboard
 
 on:
+  # 1️⃣ 핵심 변경: PR이 닫힐 때(머지 포함) 무조건 트리거를 발생시킴
   pull_request:
+    types: [closed]
     branches:
       - main
-    types:
-      - closed
+
+  workflow_dispatch:
 
   schedule:
     - cron: '0 15 * * 0'
 
-  workflow_dispatch:
-
 permissions:
   contents: write
+  pull-requests: read
 
 concurrency:
   group: weekly-dashboard
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   dashboard:
-    if: github.event_name != 'pull_request' || github.event.pull_request.merged == true
+    # 2️⃣ 핵심 변경: PR 이벤트라면 'Merged' 된 경우에만 실행 (그냥 Close 된 건 무시)
+    # 수동 실행이나 스케줄 실행은 통과시킴
+    if: |
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule'
+
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
@@ -33,49 +40,30 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
+      - name: Debug Workflow Context
+        run: |
+          echo "===== GITHUB CONTEXT ====="
+          echo "event_name=${{ github.event_name }}"
+          echo "ref=${{ github.ref }}"
+          echo "repository=${{ github.repository }}"
+          echo "actor=${{ github.actor }}"
+
       - name: Generate Weekly Stats
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require("fs");
-            const owner = "algo-gongbu";
-            const repo = "algo-study";
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
 
             const now = new Date();
+            const kstNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
+            const day = kstNow.getDay();
+            const diff = day === 0 ? 6 : day - 1;
 
-            const kstParts = Object.fromEntries(
-              new Intl.DateTimeFormat("en-US", {
-                timeZone: "Asia/Seoul",
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-                weekday: "short",
-                hour12: false
-              }).formatToParts(now).map(p => [p.type, p.value])
-            );
-
-            const kstYear = parseInt(kstParts.year);
-            const kstMonth = parseInt(kstParts.month) - 1;
-            const kstDay = parseInt(kstParts.day);
-
-            const kstWeekday = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
-              .indexOf(kstParts.weekday);
-            const diffToMonday = kstWeekday === 0 ? 6 : kstWeekday - 1;
-
-            const mondayKST_inUTC = new Date(Date.UTC(
-              kstYear,
-              kstMonth,
-              kstDay - diffToMonday,
-              -9, 0, 0, 0
-            ));
-
-            const mondayLabel = new Date(
-              mondayKST_inUTC.getTime() + 9 * 60 * 60 * 1000
-            ).toISOString().slice(0, 10);
-
-            console.log(`기준 월요일 (KST): ${mondayLabel}`);
-            console.log(`기준 UTC: ${mondayKST_inUTC.toISOString()}`);
+            kstNow.setDate(kstNow.getDate() - diff);
+            kstNow.setHours(0, 0, 0, 0);
+            const mondayUTC = new Date(kstNow.toISOString());
 
             const pulls = await github.paginate(github.rest.pulls.list, {
               owner,
@@ -84,16 +72,7 @@ jobs:
               per_page: 100
             });
 
-            const weekly = pulls.filter(pr =>
-              pr.merged_at &&
-              new Date(pr.merged_at) >= mondayKST_inUTC &&
-              !pr.user.login.includes("[bot]")
-            );
-
-            console.log(`이번 주 merged PR 수: ${weekly.length}`);
-            weekly.forEach(pr =>
-              console.log(`  - #${pr.number} ${pr.title} by ${pr.user.login} at ${pr.merged_at}`)
-            );
+            const weekly = pulls.filter(pr => pr.merged_at && new Date(pr.merged_at) >= mondayUTC);
 
             const counts = {};
             weekly.forEach(pr => {
@@ -101,9 +80,8 @@ jobs:
               counts[author] = (counts[author] || 0) + 1;
             });
 
-            let table = `📅 기준 주간 시작: ${mondayLabel} (월요일 00:00 KST)\n\n`;
-            table += "| Member | Count | Status |\n";
-            table += "|--------|-------|--------|\n";
+            let table = `📅 기준 주간 시작: ${kstNow.toISOString().slice(0, 10)} (월요일 00:00 KST)\n\n`;
+            table += "| Member | Count | Status |\n|--------|-------|--------|\n";
 
             const authors = Object.keys(counts).sort();
             if (authors.length === 0) {
@@ -117,46 +95,40 @@ jobs:
             }
 
             fs.writeFileSync("dashboard_table.txt", table);
-            console.log("dashboard_table.txt 생성 완료:\n" + table);
 
       - name: Inject Dashboard into README
         run: |
-          python3 <<'PY'
+          python <<'PY'
           from pathlib import Path
           import sys
 
           readme = Path("README.md")
-          table_file = Path("dashboard_table.txt")
+          table = Path("dashboard_table.txt")
 
-          if not readme.exists():
-              print("ERROR: README.md not found", file=sys.stderr)
-              sys.exit(1)
-          if not table_file.exists():
-              print("ERROR: dashboard_table.txt not found", file=sys.stderr)
+          if not readme.exists() or not table.exists():
+              print("Required files missing.", file=sys.stderr)
               sys.exit(1)
 
           content = readme.read_text(encoding="utf-8")
-          dashboard = table_file.read_text(encoding="utf-8").strip()
+          dashboard = table.read_text(encoding="utf-8").strip()
 
-          start_marker = "<!-- WEEKLY_DASHBOARD_START -->"
-          end_marker = "<!-- WEEKLY_DASHBOARD_END -->"
+          start_marker = "<" + "!-- WEEKLY_DASHBOARD_START --" + ">"
+          end_marker = "<" + "!-- WEEKLY_DASHBOARD_END --" + ">"
 
-          if start_marker not in content:
-              print(f"ERROR: '{start_marker}' not found in README.md", file=sys.stderr)
-              sys.exit(1)
-          if end_marker not in content:
-              print(f"ERROR: '{end_marker}' not found in README.md", file=sys.stderr)
+          if start_marker not in content or end_marker not in content:
+              print(f"Error: Cannot find markers in README.md\nTarget: {start_marker}", file=sys.stderr)
               sys.exit(1)
 
-          before = content.split(start_marker)[0]
-          after = content.split(end_marker)[1]
+          try:
+              before = content.split(start_marker)[0]
+              after = content.split(end_marker)[1]
+          except ValueError as e:
+              print(f"Split failed: {e}", file=sys.stderr)
+              sys.exit(1)
 
-          updated = before + start_marker + "\n" + dashboard + "\n" + end_marker + after
-          readme.write_text(updated, encoding="utf-8")
-
-          print("README.md 업데이트 완료!")
-          print("--- 삽입된 내용 ---")
-          print(dashboard)
+          updated_content = before + start_marker + "\n" + dashboard + "\n" + end_marker + after
+          readme.write_text(updated_content, encoding="utf-8")
+          print("README updated successfully!")
           PY
 
       - name: Commit and Push Changes
@@ -166,27 +138,18 @@ jobs:
 
           git add README.md
           if git diff --staged --quiet; then
-            echo "변경사항 없음 - 스킵"
+            echo "No changes detected"
             exit 0
           fi
 
-          git commit -m "📊 weekly dashboard update"
+          # CI 무한 루프 방지를 위해 [skip ci] 태그 추가
+          git commit -m "📊 weekly dashboard update [skip ci]"
+          git pull --rebase origin main
 
-          for i in 1 2 3; do
-            echo "Push 시도 $i/3..."
-            git fetch origin main
-            git rebase origin/main && git push origin HEAD:main && {
-              echo "Push 성공!"
-              break
-            }
-
-            if git rebase --show-current-patch 2>/dev/null; then
-              git rebase --abort
-            fi
-
-            if [ $i -eq 3 ]; then
-              echo "Push 최종 실패"
-              exit 1
-            fi
+          for i in 1 2 3
+          do
+            git push origin HEAD:main && break
+            echo "Push failed. Retry $i/3"
+            if [ $i -eq 3 ]; then exit 1; fi
             sleep 5
           done
