@@ -5,6 +5,8 @@ on:
 
   workflow_dispatch:
 
+  # 매주 월요일 00:00 KST
+  # UTC 기준 일요일 15:00
   schedule:
     - cron: '0 15 * * 0'
 
@@ -17,6 +19,9 @@ concurrency:
 
 jobs:
   dashboard:
+    # github-actions bot이 만든 commit에는 재실행 방지
+    if: github.actor != 'github-actions[bot]'
+
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
@@ -31,17 +36,18 @@ jobs:
           persist-credentials: true
 
       # =========================================
-      # 1️⃣ Debug Info
+      # 1️⃣ Debug Workflow Info
       # =========================================
       - name: Debug Workflow Context
         run: |
+          echo "===== GITHUB CONTEXT ====="
           echo "event_name=${{ github.event_name }}"
           echo "ref=${{ github.ref }}"
           echo "repository=${{ github.repository }}"
           echo "actor=${{ github.actor }}"
 
       # =========================================
-      # 2️⃣ 이번 주 PR 통계 계산
+      # 2️⃣ Weekly PR Stats 생성
       # =========================================
       - name: Generate Weekly Stats
         uses: actions/github-script@v7
@@ -53,7 +59,7 @@ jobs:
             const repo = context.repo.repo;
 
             // =====================================
-            // KST 기준 이번 주 월요일 00:00
+            // KST 기준 이번 주 월요일 00:00 계산
             // =====================================
             const now = new Date();
 
@@ -72,13 +78,22 @@ jobs:
             kstNow.setDate(kstNow.getDate() - diff);
             kstNow.setHours(0, 0, 0, 0);
 
-            const mondayUTC = new Date(kstNow.toISOString());
+            const mondayUTC = new Date(
+              kstNow.toISOString()
+            );
 
-            console.log("KST Monday:", kstNow.toISOString());
-            console.log("UTC Monday:", mondayUTC.toISOString());
+            console.log(
+              "KST Monday:",
+              kstNow.toISOString()
+            );
+
+            console.log(
+              "UTC Monday:",
+              mondayUTC.toISOString()
+            );
 
             // =====================================
-            // 모든 Closed PR 가져오기 (Pagination)
+            // Closed PR 전체 조회
             // =====================================
             const pulls = await github.paginate(
               github.rest.pulls.list,
@@ -90,10 +105,13 @@ jobs:
               }
             );
 
-            console.log("Total closed PRs:", pulls.length);
+            console.log(
+              "Total closed PRs:",
+              pulls.length
+            );
 
             // =====================================
-            // 이번 주 merge된 PR 필터링
+            // 이번 주 merge된 PR만 필터링
             // =====================================
             const weekly = pulls.filter(pr => {
               return (
@@ -127,25 +145,33 @@ jobs:
             // =====================================
             let table = "";
 
-            table += `📅 기준 주간 시작: ${kstNow
-              .toISOString()
-              .slice(0, 10)} (월요일 00:00 KST)\n\n`;
+            table +=
+              `📅 기준 주간 시작: ${
+                kstNow.toISOString().slice(0, 10)
+              } (월요일 00:00 KST)\n\n`;
 
-            table += "| Member | Count | Status |\n";
-            table += "|--------|-------|--------|\n";
+            table +=
+              "| Member | Count | Status |\n";
 
-            const authors = Object.keys(counts).sort();
+            table +=
+              "|--------|-------|--------|\n";
+
+            const authors =
+              Object.keys(counts).sort();
 
             if (authors.length === 0) {
               table += "| - | 0 | ❌ |\n";
             } else {
               authors.forEach(user => {
                 const count = counts[user];
-                const status = count >= 5
-                  ? "✅"
-                  : "❌";
 
-                table += `| ${user} | ${count} | ${status} |\n`;
+                const status =
+                  count >= 5
+                    ? "✅"
+                    : "❌";
+
+                table +=
+                  `| ${user} | ${count} | ${status} |\n`;
               });
             }
 
@@ -161,41 +187,68 @@ jobs:
       # =========================================
       - name: Inject Dashboard into README
         run: |
-          if [ ! -f README.md ]; then
-            echo "README.md not found"
-            exit 1
-          fi
+          python <<'PY'
+          from pathlib import Path
 
-          if [ ! -f dashboard_table.txt ]; then
-            echo "dashboard_table.txt not found"
-            exit 1
-          fi
+          readme = Path("README.md")
+          table = Path("dashboard_table.txt")
 
-          awk '
-          BEGIN {
-            while ((getline line < "dashboard_table.txt") > 0) {
-              table = table line "\n"
-            }
-          }
+          if not readme.exists():
+              raise FileNotFoundError(
+                  "README.md not found"
+              )
 
-          /<!-- WEEKLY_DASHBOARD_START -->/ {
-            print
-            printf "%s", table
-            in_section = 1
-            next
-          }
+          if not table.exists():
+              raise FileNotFoundError(
+                  "dashboard_table.txt not found"
+              )
 
-          /<!-- WEEKLY_DASHBOARD_END -->/ {
-            in_section = 0
-          }
+          content = readme.read_text(
+              encoding="utf-8"
+          )
 
-          !in_section || /<!-- WEEKLY_DASHBOARD_END -->/
-          ' README.md > README.md.tmp
+          dashboard = table.read_text(
+              encoding="utf-8"
+          ).strip()
 
-          mv README.md.tmp README.md
+          start = "<!-- WEEKLY_DASHBOARD_START -->"
+          end = "<!-- WEEKLY_DASHBOARD_END -->"
+
+          if start not in content:
+              raise ValueError(
+                  "START marker not found"
+              )
+
+          if end not in content:
+              raise ValueError(
+                  "END marker not found"
+              )
+
+          before = content.split(start)[0]
+          after = content.split(end)[1]
+
+          updated = (
+              before
+              + start
+              + "\n"
+              + dashboard
+              + "\n"
+              + end
+              + after
+          )
+
+          readme.write_text(
+              updated,
+              encoding="utf-8"
+          )
+
+          print(
+              "README updated successfully"
+          )
+          PY
 
       # =========================================
-      # 4️⃣ 변경 확인
+      # 4️⃣ README 변경 확인
       # =========================================
       - name: Verify README Changes
         run: |
@@ -224,7 +277,7 @@ jobs:
 
           git commit -m "📊 weekly dashboard update"
 
-          # 최신 원격 반영
+          # 최신 상태 동기화
           git pull --rebase origin main
 
           # push 재시도
@@ -247,5 +300,9 @@ jobs:
       # =========================================
       - name: Final Git Status
         run: |
+          echo "===== FINAL GIT STATUS ====="
           git status
+
+          echo ""
+          echo "===== RECENT COMMITS ====="
           git log --oneline -5
