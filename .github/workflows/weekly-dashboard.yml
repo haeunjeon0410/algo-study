@@ -14,28 +14,21 @@ on:
 permissions:
   contents: write
 
-# 동시에 여러 workflow가 실행되며 충돌나는 상황 방지
 concurrency:
   group: weekly-dashboard
-  cancel-in-progress: true
+  cancel-in-progress: false  # ⭐ true → false로 변경
 
 jobs:
   dashboard:
     runs-on: ubuntu-latest
 
     steps:
-      # =========================================
-      # 0️⃣ Repository Checkout
-      # =========================================
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: true
 
-      # =========================================
-      # 1️⃣ 이번 주 PR 통계 계산
-      # =========================================
       - name: Generate Weekly Stats
         uses: actions/github-script@v7
         with:
@@ -45,9 +38,6 @@ jobs:
             const org = context.repo.owner;
             const repo = context.repo.repo;
 
-            // =====================================
-            // KST 기준 이번 주 월요일 00:00 계산
-            // =====================================
             const now = new Date();
 
             const kstNow = new Date(
@@ -56,7 +46,7 @@ jobs:
               })
             );
 
-            const day = kstNow.getDay(); // 0 = Sunday
+            const day = kstNow.getDay();
             const diff = day === 0 ? 6 : day - 1;
 
             kstNow.setDate(kstNow.getDate() - diff);
@@ -67,9 +57,6 @@ jobs:
             console.log("KST Monday:", kstNow.toISOString());
             console.log("UTC Monday:", mondayUTC.toISOString());
 
-            // =====================================
-            // Closed PR 조회
-            // =====================================
             const { data: pulls } =
               await github.rest.pulls.list({
                 owner: org,
@@ -78,9 +65,6 @@ jobs:
                 per_page: 100
               });
 
-            // =====================================
-            // 이번 주 merge된 PR만 필터링
-            // =====================================
             const weekly = pulls.filter(pr =>
               pr.merged_at &&
               new Date(pr.merged_at) >= mondayUTC
@@ -91,9 +75,6 @@ jobs:
               weekly.length
             );
 
-            // =====================================
-            // 작성자 기준 집계
-            // =====================================
             const counts = {};
 
             weekly.forEach(pr => {
@@ -106,9 +87,6 @@ jobs:
               counts[author]++;
             });
 
-            // =====================================
-            // Markdown 테이블 생성
-            // =====================================
             let table = "";
 
             table += `📅 기준: ${kstNow
@@ -136,9 +114,6 @@ jobs:
 
             fs.writeFileSync("dashboard.md", table);
 
-      # =========================================
-      # 2️⃣ README 치환
-      # =========================================
       - name: Inject into README
         run: |
           START="<!-- WEEKLY_DASHBOARD_START -->"
@@ -167,9 +142,6 @@ jobs:
 
           mv temp.md README.md
 
-      # =========================================
-      # 3️⃣ 변경사항 커밋 및 푸시
-      # =========================================
       - name: Commit and Push changes
         run: |
           git config user.name "github-actions"
@@ -177,11 +149,21 @@ jobs:
 
           git add README.md dashboard.md
 
-          # 변경사항이 있을 때만 commit/push
           if ! git diff --staged --quiet; then
             git commit -m "📊 weekly dashboard update [skip ci]"
 
-            # 현재 HEAD를 main에 push
+            # ⭐ 충돌 방지: pull --rebase 추가
+            for i in {1..3}; do
+              git pull --rebase origin main && break || {
+                if [ $i -eq 3 ]; then
+                  echo "Failed after 3 retries"
+                  exit 1
+                fi
+                echo "Retry $i/3 (${i}초 대기)..."
+                sleep $((i * 2))
+              }
+            done
+
             git push origin HEAD:main
           else
             echo "No changes to commit"
