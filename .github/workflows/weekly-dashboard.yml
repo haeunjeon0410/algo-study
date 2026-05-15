@@ -3,17 +3,17 @@ name: Weekly Dashboard
 on:
   push:
     branches:
-      - main # 공용 레포 main에 머지되거나, Fork 레포에서 Sync할 때 확실하게 트리거링
+      - main # PR이 머지되어 main에 반영되는 순간 자동으로 실행됨
 
-  workflow_dispatch:
+  workflow_dispatch: # 필요 시 수동 실행 가능
 
   # 매주 월요일 00:00 KST (UTC 일요일 15:00)
   schedule:
     - cron: '0 15 * * 0'
 
 permissions:
-  contents: write
-  pull-requests: read # PR 조회를 위한 권한
+  contents: write # README 수정을 위해 필수
+  pull-requests: read # PR 목록 조회를 위해 필요
 
 concurrency:
   group: weekly-dashboard
@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   dashboard:
-    # github-actions bot이 만든 커밋에 의한 무한 루프 방지
+    # 봇이 스스로 만든 커밋에 의한 무한 루프 방지
     if: github.actor != 'github-actions[bot]'
 
     runs-on: ubuntu-24.04
@@ -39,18 +39,7 @@ jobs:
           persist-credentials: true
 
       # =========================================
-      # 1️⃣ Debug Workflow Info
-      # =========================================
-      - name: Debug Workflow Context
-        run: |
-          echo "===== GITHUB CONTEXT ====="
-          echo "event_name=${{ github.event_name }}"
-          echo "ref=${{ github.ref }}"
-          echo "repository=${{ github.repository }}"
-          echo "actor=${{ github.actor }}"
-
-      # =========================================
-      # 2️⃣ Weekly PR Stats 생성
+      # 1️⃣ Weekly PR Stats 생성 (github-script 사용)
       # =========================================
       - name: Generate Weekly Stats
         uses: actions/github-script@v7
@@ -101,7 +90,7 @@ jobs:
             fs.writeFileSync("dashboard_table.txt", table);
 
       # =========================================
-      # 3️⃣ README 업데이트 (포매터/IDE 자동삭제 방지 적용)
+      # 2️⃣ README 업데이트 (포매터/IDE 자동삭제 방지 적용)
       # =========================================
       - name: Inject Dashboard into README
         run: |
@@ -140,18 +129,7 @@ jobs:
           PY
 
       # =========================================
-      # 4️⃣ README 변경 확인
-      # =========================================
-      - name: Verify README Changes
-        run: |
-          echo "===== README Preview ====="
-          cat README.md
-          echo ""
-          echo "===== Git Diff ====="
-          git diff
-
-      # =========================================
-      # 5️⃣ Commit & Push
+      # 3️⃣ Commit & Push (공용 레포 main에 반영)
       # =========================================
       - name: Commit and Push Changes
         run: |
@@ -174,14 +152,3 @@ jobs:
             if [ $i -eq 3 ]; then exit 1; fi
             sleep 5
           done
-
-      # =========================================
-      # 6️⃣ 최종 상태 출력
-      # =========================================
-      - name: Final Git Status
-        run: |
-          echo "===== FINAL GIT STATUS ====="
-          git status
-          echo ""
-          echo "===== RECENT COMMITS ====="
-          git log --oneline -5
