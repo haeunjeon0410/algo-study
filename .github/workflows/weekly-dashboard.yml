@@ -135,38 +135,47 @@ jobs:
             fs.writeFileSync("dashboard_table.txt", table);
 
       # =========================================
-      # 3️⃣ README 업데이트
+      # 3️⃣ README 업데이트 (split 에러 방지 처리 완료)
       # =========================================
       - name: Inject Dashboard into README
         run: |
           python <<'PY'
           from pathlib import Path
+          import sys
 
           readme = Path("README.md")
           table = Path("dashboard_table.txt")
 
-          if not readme.exists():
-              raise FileNotFoundError("README.md not found")
-
-          if not table.exists():
-              raise FileNotFoundError("dashboard_table.txt not found")
+          if not readme.exists() or not table.exists():
+              print("Required files (README.md or dashboard_table.txt) missing.", file=sys.stderr)
+              sys.exit(1)
 
           content = readme.read_text(encoding="utf-8")
           dashboard = table.read_text(encoding="utf-8").strip()
 
-          start = ""
-          end = ""
+          start_marker = ""
+          end_marker = ""
 
-          if start not in content or end not in content:
-              raise ValueError("Markers not found in README.md")
+          # 마커 존재 여부 및 빈 값 검증
+          if not start_marker or not end_marker:
+              print("Error: Markers cannot be empty strings.", file=sys.stderr)
+              sys.exit(1)
 
-          before = content.split(start)[0]
-          after = content.split(end)[1]
+          if start_marker not in content or end_marker not in content:
+              print("Error: Cannot find target markers in README.md", file=sys.stderr)
+              sys.exit(1)
 
-          updated = before + start + "\n" + dashboard + "\n" + end + after
-          readme.write_text(updated, encoding="utf-8")
+          # split 과정에서 빈 문자열 에러를 방지하기 위해 변수를 명확히 전달
+          try:
+              before = content.split(start_marker)[0]
+              after = content.split(end_marker)[1]
+          except ValueError as e:
+              print(f"Python split failed: {e}", file=sys.stderr)
+              sys.exit(1)
 
-          print("README updated successfully")
+          updated_content = before + start_marker + "\n" + dashboard + "\n" + end_marker + after
+          readme.write_text(updated_content, encoding="utf-8")
+          print("README updated successfully!")
           PY
 
       # =========================================
