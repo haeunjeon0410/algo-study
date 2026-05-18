@@ -51,11 +51,18 @@ jobs:
             const now = new Date();
             const kstNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
             const day = kstNow.getDay();
-            const diff = day === 1 ? 0 : (day === 0 ? 1 : day - 1);
 
-            kstNow.setDate(kstNow.getDate() - diff);
-            kstNow.setHours(0, 0, 0, 0);
-            const mondayUTC = new Date(kstNow.toISOString());
+            // 이번주 월요일 00:00 KST 계산
+            let mondayDate = new Date(kstNow);
+            if (day === 0) {
+              // 일요일이면 6일 전(월요일)으로
+              mondayDate.setDate(mondayDate.getDate() - 6);
+            } else {
+              // 월~토요일이면 (day - 1)일 전으로
+              mondayDate.setDate(mondayDate.getDate() - (day - 1));
+            }
+            mondayDate.setHours(0, 0, 0, 0);
+            const mondayUTC = new Date(mondayDate.toISOString());
 
             const pulls = await github.paginate(github.rest.pulls.list, {
               owner,
@@ -72,7 +79,7 @@ jobs:
               counts[author] = (counts[author] || 0) + 1;
             });
 
-            let table = `📅 기준 주간 시작: ${kstNow.toISOString().slice(0, 10)} (월요일 00:00 KST)\n\n`;
+            let table = `📅 기준 주간 시작: ${mondayDate.toISOString().slice(0, 10)} (월요일 00:00 KST)\n\n`;
             table += "| Member | Count | Status |\n|--------|-------|--------|\n";
 
             const authors = Object.keys(counts).sort();
