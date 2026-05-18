@@ -78,9 +78,9 @@ jobs:
               counts[author] = (counts[author] || 0) + 1;
             });
 
-            // 4. 마크다운 테이블 생성
+            // 4. 요청하신 마크다운 출력 포맷 반영
             const dateStr = kstNow.toISOString().slice(0, 10);
-            let table = `📅 기준 주간: ${dateStr} (월요일 00:00 KST) ~ 이번 주 일요일 23:59 KST\n\n`;
+            let table = `📅 기준 주간 시작: ${dateStr} (월요일 00:00 KST)\n\n`;
             table += "| Member | Count | Status |\n|--------|-------|--------|\n";
 
             const authors = Object.keys(counts).sort();
@@ -115,7 +115,7 @@ jobs:
           start_marker = ""
           end_marker = ""
 
-          # 1. 마커 존재 여부 선행 검증 (Split 에러 원천 차단)
+          # 마커 존재 여부 선행 검증 (Split 에러 차단)
           if start_marker not in content:
               print(f"Error: Cannot find '{start_marker}' in README.md", file=sys.stderr)
               sys.exit(1)
@@ -130,7 +130,7 @@ jobs:
               print(f"Split failed: {e}", file=sys.stderr)
               sys.exit(1)
 
-          # 2. 데이터 주입 및 파일 업데이트
+          # 데이터 주입 및 리드미 업데이트
           updated_content = before + start_marker + "\n" + dashboard + "\n" + end_marker + after
           readme.write_text(updated_content, encoding="utf-8")
           print("README updated successfully!")
