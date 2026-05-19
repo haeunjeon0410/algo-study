@@ -7,7 +7,9 @@
 
 | Member | Count | Status |
 |--------|-------|--------|
-| - | 0 | ❌ |
+| onff02 | 5 | ✅ |
+| sungjaep11 | 2 | ❌ |
+| tomchaccom | 1 | ❌ |
 <!-- WEEKLY_DASHBOARD_END -->
 
 ---
