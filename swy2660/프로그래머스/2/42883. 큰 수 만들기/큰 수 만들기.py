@@ -4,7 +4,7 @@ def solution(number, k):
     for num in number:
         while stack and stack[-1] < num and k > 0:
             stack.pop()
-            k -= 1       
+            k -= 1
         stack.append(num)
         
     if k > 0:
