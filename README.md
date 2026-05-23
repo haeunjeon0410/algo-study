@@ -7,7 +7,7 @@
 
 | Member | Count | Status |
 |--------|-------|--------|
-| LYoooJ | 3 | ❌ |
+| LYoooJ | 4 | ❌ |
 | alicebsy | 1 | ❌ |
 | godten-cmd | 1 | ❌ |
 | onff02 | 5 | ✅ |
