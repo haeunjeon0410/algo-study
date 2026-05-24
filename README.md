@@ -12,7 +12,7 @@
 | godten-cmd | 5 | ✅ |
 | onff02 | 5 | ✅ |
 | sungjaep11 | 5 | ✅ |
-| tomchaccom | 3 | ❌ |
+| tomchaccom | 4 | ❌ |
 <!-- WEEKLY_DASHBOARD_END -->
 
 ---
