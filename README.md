@@ -7,7 +7,7 @@
 
 | Member | Count | Status |
 |--------|-------|--------|
-| LYoooJ | 3 | ❌ |
+| LYoooJ | 4 | ❌ |
 | godten-cmd | 2 | ❌ |
 <!-- WEEKLY_DASHBOARD_END -->
 
