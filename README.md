@@ -7,7 +7,7 @@
 
 | Member | Count | Status |
 |--------|-------|--------|
-| sungjaep11 | 3 | ❌ |
+| sungjaep11 | 4 | ❌ |
 <!-- WEEKLY_DASHBOARD_END -->
 
 ---
