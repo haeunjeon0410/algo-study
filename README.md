@@ -11,7 +11,7 @@
 | alicebsy | 1 | ❌ |
 | haeunjeon0410 | 5 | ✅ |
 | onff02 | 5 | ✅ |
-| sungjaep11 | 3 | ❌ |
+| sungjaep11 | 4 | ❌ |
 <!-- WEEKLY_DASHBOARD_END -->
 
 ---
