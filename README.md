@@ -8,9 +8,10 @@
 | Member | Count | Status |
 |--------|-------|--------|
 | KangYeSeo04 | 6 | ✅ |
+| alicebsy | 1 | ❌ |
 | haeunjeon0410 | 5 | ✅ |
 | onff02 | 5 | ✅ |
-| sungjaep11 | 2 | ❌ |
+| sungjaep11 | 3 | ❌ |
 <!-- WEEKLY_DASHBOARD_END -->
 
 ---
